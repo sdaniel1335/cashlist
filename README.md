@@ -1,46 +1,65 @@
-# Cashlist 0.1.0
+# Cashlist
 
-Egyszerű bevétel- és kiadáslista VC Framework alapon, a Lifelist, Todolist és Playlist mellé.
+Lightweight income and expense tracker built on [VC Framework](https://github.com/dsoos1290/vcframework) for PHP 5.3 and newer.
 
-- Közös `users` tábla és belépési munkamenet (`auth_user_id`, `auth_username`).
-- B/P/W kategória minden pénzmozgáson, akár ugyanazon bankszámlán belül is.
-- Tetszőleges számú bankszámla, pénztárca és boríték, saját devizával és KP/nem KP típussal.
-- Számlánkénti egyenleg, teljes KP/számla összesítés és külön B/P/W bontás.
-- Bevétel, kiadás, nyitóegyenleg és számlák vagy kategóriák közötti átvezetés.
-- Eredeti devizás összeg és a számlán ténylegesen terhelt/jóváírt összeg külön rögzíthető.
-- Dátumválasztós egyenleg; alapból a mai nap vége. Jövőbeli tételek is felvehetők.
-- Szerkesztés, törlés, archiválás, szűrés, lapozás és mobilnézet.
+Cashlist manages per-user transactions across bank accounts, cash wallets and envelopes, with B/P/W categories, multiple currencies and date-based balances.
 
-## Telepítés
+## Features
 
-1. Tedd a projektet a többi app mellé, például `/cashlist` alá. Apache alatt a mod_rewrite és az `.htaccess` szabályok engedélyezése szükséges. A `public_html/.htaccess` az alkalmazás része; a `private_html` és más belső mappák nem lehetnek közvetlenül elérhetők.
-2. Másold a `private_html/app/config/db-sample.php` fájlt `db.php` névre. Állítsd be **ugyanazt az adatbázist és DB_PREFIX értéket**, mint a többi appnál. A PHP MySQLi és a biztonságos véletlenszámokhoz OpenSSL kiterjesztés szükséges PHP 5.3 alatt.
-3. Importáld az `install.sql` fájlt. A meglévő `users` rekordokat nem módosítja, nem hoz létre alapértelmezett adminfiókot. Ha van DB_PREFIX, importálás előtt minden táblanévhez és REFERENCES hivatkozáshoz add hozzá, a `users` táblánál is. A meglévő `users.id` oszlop azonos típusú, `INT UNSIGNED` legyen; a csatolt appok ezt használják.
-4. Használd a meglévő felhasználódat. Friss közös telepítésnél először a felhasználókezelő appban hozz létre fiókot. Minden app azonos domainen, azonos PHP session névvel, session tárolóval és `/` cookie útvonallal fusson. Eltérő aldomainek és külön session tárolók nem biztosítanak automatikus közös belépést.
-5. A Beállításokban válaszd ki a fődevizát (alapból HUF), majd vedd fel a számlákat. Éles környezetben az alkalmazáskonfigurációban állítsd az APP_ENV értékét `prod` értékre, és használj HTTPS-t.
+* Per-user income, expense, opening balance and transfer entries with add, edit and delete actions.
+* B/P/W categories, including transfers between categories within the same account.
+* Multiple accounts, wallets and envelopes with individual currencies and cash/non-cash classification.
+* Account balances, total cash and non-cash balances, and separate B/P/W summaries.
+* Configurable main currency and manually recorded conversions for foreign-currency transactions.
+* Original transaction amount and currency stored separately from the amount charged to the account.
+* Date-based balances, defaulting to today, with support for future transactions.
+* Account renaming and archiving while preserving transaction history and balances.
+* Category and account filters, paginated transaction lists and a responsive interface.
+* Shared user login with sibling applications through a common `users` table and PHP session.
+* CSRF protection, flash messages, duplicate-submission protection and edit-conflict detection.
+* MySQLi, optional database table prefixes, Apache URL rewriting and subdirectory support.
+* No Composer or external frontend dependency; PHP 5.3+ compatible.
 
-A framework és a közös topbar változatlan maradt. PHP 5.3–8.x kompatibilis alkalmazáskód; Composer és külső frontendfüggőség nélkül.
+## Requirements
 
-## Első lépések és számítás
+* PHP 5.3+ with MySQLi.
+* OpenSSL for secure random generation on older PHP versions without `random_bytes`.
+* MySQL or MariaDB with InnoDB and utf8mb4 support.
+* Apache with `mod_rewrite`.
 
-Először hozd létre például az OTP (HUF, nem KP), Pénztárca (HUF, KP) és Boríték (HUF, KP) számlákat. Mindegyik kezdőösszegét **Nyitóegyenleg** tétellel vedd fel a megfelelő B/P/W kategóriára és kezdőnapra. Negatív nyitóegyenleg is megadható. A kezdőnap előtti egyenleg nulla; a nyitóegyenleg nem korábbi teljes történet.
+## Installation
 
-20 USD-s vásárlás HUF-os OTP-számláról: Kiadás → OTP → összeg 7 400 HUF, az eredeti devizás résznél 20 USD. Az OTP egyenlege 7 400 forinttal csökken.
+1. Download the [latest release](https://github.com/sdaniel1335/cashlist/releases/latest) or clone the repository.
+2. Rename `private_html/app/config/db-sample.php` to `private_html/app/config/db.php` and configure the database.
+3. Import `install.sql` into the configured database. If using `DB_PREFIX`, apply the prefix to all table names and foreign-key references in the SQL file before importing, including `users`.
+4. Open the application and sign in with an existing shared account, or `admin` / `admin` on a fresh installation.
+5. **Immediately change the default password** through your shared user-management application before exposing the application to the internet. Cashlist does not provide a password-change screen.
+6. Choose the main currency in **Settings**, add your accounts and wallets, then record their opening balances under the appropriate B/P/W categories.
 
-USD-s számlánál a számlaösszeg mellett a fődevizás értéket is add meg. A fődevizás összesítés a rögzített értékeket adja össze, **nem az aktuális piaci árfolyamon értékeli újra a devizaállományt**. A fődeviza az első tételtől rögzített. A számla devizája és KP típusa létrehozás után nem változtatható; ez megőrzi a történeti bontás értelmét.
+The installer preserves existing users. When installing alongside Lifelist, Todolist or Playlist, use the same database and table prefix. If an `admin` username already exists, its password is not replaced.
 
-Készpénzfelvétel: Átvezetés OTP → Pénztárca. Az összes pénz nem változik, csak a helye. B→P vagy más kategóriamozgatás ugyanazon a számlán is lehetséges. Eltérő számladeviza esetén a forrás- és célösszeget is meg kell adni; a fődevizás érték mindkét oldalon azonos. Banki díj külön kiadás.
+**Security:** Keep `private_html` inaccessible to direct HTTP requests, use HTTPS and set `APP_ENV` to `prod` for production.
 
-A nyitóegyenlegen kívül pozitív összegeket adj meg, az előjelet a típus határozza meg. A felület két tizedesjegyet kezel, egy tételben legfeljebb 999 999 999,99 egységet. Az egyenleg lehet negatív. A tranzakciólista minden dátumot mutat, a kiválasztott nap utáni tételek egyenlegen kívül jelölést kapnak. A jövőbeli tétel terv; elérve a dátumát automatikusan beleszámít, ezért elmaradt vagy megváltozott pénzmozgásnál javítsd/töröld.
+## Accounts and transactions
 
-Az archiválás csak elrejti a számlát az új tételek választójából. Az előzmények és az egyenleg megmaradnak. Szerkesztés és törlés az egyenlegeket is újraszámolja. Ugyanazon űrlap ismételt beküldése nem hoz létre még egy tranzakciót; az elavult szerkesztést az app jelzi.
+Each account has a currency and a cash/non-cash type. For example, an OTP bank account can be marked as non-cash, while a wallet or envelope can be marked as cash. The currency and type are fixed after creation to preserve historical balances; names can be changed and accounts can be archived.
 
-## Ellenőrzés
+Use opening balance entries to record existing funds, separately for each B/P/W category. Opening balances may be negative. Transfers move money between accounts or categories without changing the overall main-currency total. Record bank fees as separate expenses.
 
-`php tests/money.php` — pénzösszegek, tizedesvessző, negatív és nagy összegek, dátumok és hibás bemenetek regressziós ellenőrzése. PHP 5.3.29 és 8.4.27 alatt ellenőrizve.
+For a 20 USD purchase charged as 7,400 HUF to a HUF account, record an expense of 7,400 HUF and enter 20 USD as the original amount. For accounts in another currency, also enter the main-currency value. Summaries use these recorded conversions, not live exchange rates. The main currency can only be changed before the first transaction.
 
-Külön, ideiglenes MariaDB-adatbázison ellenőrizve: közös formátumú belépés, számlafelvétel, devizás tételek, jövőbeli egyenlegek, átvezetések, B/P átcsoportosítás, jogosultságok, sikertelen mentés visszagörgetése, dupla beküldés, szerkesztési ütközés, törlés és CSRF. Böngészős ellenőrzés asztali és 390 px széles mobilnézeten.
+Balances include transactions up to the end of the selected date. Future transactions are marked as planned and start contributing when the selected date reaches them. Update or delete plans if the actual transaction changes or does not occur. The transaction list also shows entries after the selected balance date, marked as excluded from that balance.
 
-A teljes integrációs ellenőrzés megismételhető a `node tests/integration.js` paranccsal. Playwright és egy **friss, kizárólag tesztre létrehozott**, `_test` végű adatbázis szükséges, az `install.sql` tábláival, prefix nélkül. A teszt két fiókot és mintatételeket hoz létre; üres `users` táblát követel meg. A tesztelt PHP-webszerver ugyanerre az izolált adatbázisra mutasson. Éles adatbázison ne futtasd.
+## Configuration
 
-Környezeti változók: `CASH_TEST_MYSQL` (MariaDB/MySQL kliens elérési útja), `CASH_TEST_PHP` (PHP CLI), `CASH_TEST_DATABASE`, `CASH_TEST_PASSWORD`; opcionálisan `CASH_TEST_USER` (root), `CASH_TEST_PORT` (33369), `CASH_TEST_URL` (http://127.0.0.1:8096), `PLAYWRIGHT_MODULE` (playwright modul elérési útja), `CASH_TEST_CHROME` (telepített Chrome futtatható fájlja). A `.cashlist-test` mappába kerülnek az előnézetek.
+* Application settings: `private_html/app/config/app.php` (`APP_URL` is optional).
+* Database settings: `private_html/app/config/db.php` (`DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`, `DB_CHAR`, `DB_TIME`, `DB_PREFIX`, `DB_PORT`).
+* Main currency: configure through the authenticated application interface; defaults to HUF.
+* Interface: Hungarian, with B/P/W category labels.
+* Shared login: sibling applications must use the same domain, session name, session storage and cookie path covering all applications, typically `/`.
+
+## Releases and changelog
+
+Download the [latest release](https://github.com/sdaniel1335/cashlist/releases/latest).
+
+See [CHANGELOG.md](CHANGELOG.md) for the release history.
