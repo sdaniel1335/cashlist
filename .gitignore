@@ -1,4 +1,5 @@
 .idea/
+.cashlist-test/
 /vendor/
 private_html/app/config/db.php
 private_html/log/*

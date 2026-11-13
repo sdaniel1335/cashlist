@@ -1,43 +1,8 @@
 <!doctype html>
-<html lang="<?php echo APP_LANG; ?>">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="generator" content="<?php echo FW_NAME . (APP_ENV != 'prod' ? ' v' . FW_VER : ''); ?>">
-  <title><?php echo htmlspecialchars(isset($title) ? $title : APP_TITLE); ?></title>
-  <link href="<?php echo url('css/app.css'); ?>?v=<?php echo APP_VER; ?><?php echo (APP_ENV != 'prod' ? '&t=' . time() : ''); ?>" rel="stylesheet">
-  <link rel="icon" href="<?php echo url('favicon.ico'); ?>">
-</head>
-<body class="js">
+<html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Cashlist 0.1.0"><title><?php echo cash_e(isset($title) ? $title : APP_TITLE); ?></title><link rel="stylesheet" href="<?php echo url('css/app.css'); ?>?v=<?php echo APP_VER; ?>"><link rel="icon" href="<?php echo url('favicon.ico'); ?>"></head>
+<body>
 <?php element('topbar'); ?>
-
-<header>
-  <?php element('nav'); ?>
-</header>
-
-<?php foreach (flash() as $flash) { ?>
-  <div class="container mt-3">
-    <div class="alert alert-<?php echo $flash['type'] === 'error' ? 'danger' : htmlspecialchars($flash['type']); ?>">
-      <?php echo htmlspecialchars($flash['message']); ?>
-    </div>
-  </div>
-<?php } ?>
-
-<main>
-  <?php echo $content; ?>
-</main>
-
-<footer>
-  &copy; <?php echo date('Y') . ' ' . APP_TITLE; ?> &middot; Powered by <a href="<?php echo FW_PROJECT_URL; ?>" target="_blank" rel="noopener"><?php echo FW_NAME . (APP_ENV != 'prod' ? ' v' . FW_VER : ''); ?></a>
-</footer>
-
-<script src="<?php echo url('js/app.js'); ?>?v=<?php echo APP_VER; ?><?php echo (APP_ENV != 'prod' ? '&t=' . time() : ''); ?>"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (typeof App !== 'undefined') {
-      App.init();
-    }
-  });
-</script>
-</body>
-</html>
+<header class="app-header"><div class="header-inner"><a class="brand" href="<?php echo url('/'); ?>"><span class="brand-mark">c</span>cashlist<span class="version">0.1.0</span></a><?php if (auth_logged_in()) { ?><nav aria-label="Főmenü"><a href="<?php echo url('/'); ?>">Áttekintés</a><a href="<?php echo url('/accounts'); ?>">Számlák</a><a href="<?php echo url('/settings'); ?>">Beállítások</a></nav><form method="post" action="<?php echo url('/logout'); ?>"><input type="hidden" name="_csrf" value="<?php echo cash_e(auth_csrf_token()); ?>"><span class="username"><?php echo cash_e(auth_username()); ?></span><button class="text-button">Kilépés</button></form><?php } ?></div></header>
+<main class="container"><?php foreach (flash() as $message) { ?><div role="status" class="alert <?php echo $message['type'] === 'error' ? 'alert-error' : ''; ?>"><?php echo cash_e($message['message']); ?></div><?php } ?><?php echo $content; ?></main>
+<footer class="container">Cashlist · 0.1.0 <span>Powered by <a href="<?php echo FW_PROJECT_URL; ?>" target="_blank" rel="noopener">VC Framework</a></span></footer>
+<script src="<?php echo url('js/app.js'); ?>?v=<?php echo APP_VER; ?>"></script></body></html>
